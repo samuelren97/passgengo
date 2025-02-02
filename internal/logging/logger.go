@@ -36,3 +36,9 @@ func Fatal(err error) {
 	)
 	panic(err)
 }
+
+func Input(msg string) {
+	fmt.Print(colors.Cyan+"[INPUT]"+colors.Reset,
+		"=> "+msg,
+	)
+}

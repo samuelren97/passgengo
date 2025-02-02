@@ -17,7 +17,10 @@ var (
 	hashingMethod  int
 	noUpperChars   bool
 	noSpecialChars bool
+	wizard         bool
 )
+
+type GeneratorBuildFunc func() (gen.Generator, error)
 
 func main() {
 	colors.CheckOS()
@@ -34,7 +37,14 @@ func main() {
 
 	parseFlags()
 
-	generator, err := buildGenerator()
+	var generatorBuildFunc GeneratorBuildFunc
+	if wizard {
+		generatorBuildFunc = gen.GetGeneratorFromWizard
+	} else {
+		generatorBuildFunc = buildGenerator
+	}
+
+	generator, err := generatorBuildFunc()
 	if err != nil {
 		printError(err)
 		return
@@ -64,13 +74,7 @@ func parseFlags() {
 	)
 
 	// Hashing
-	hashingMethods := "\n"
-	for i, method := range hashing.HashMethods {
-		hashingMethods += fmt.Sprintf("\t%d -> %s", i, method)
-		if i != len(hashing.HashMethods)-1 {
-			hashingMethods += "\n"
-		}
-	}
+	hashingMethods := hashing.GetHashingMethodsString()
 	flag.IntVar(
 		&hashingMethod,
 		"hm",
@@ -91,6 +95,13 @@ func parseFlags() {
 		"nospecial",
 		false,
 		"Remove special characters",
+	)
+
+	flag.BoolVar(
+		&wizard,
+		"wizard",
+		false,
+		"Generate a password using the wizard",
 	)
 
 	flag.Parse()

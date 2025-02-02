@@ -1,0 +1,86 @@
+name: "Release"
+
+on:
+  push:
+    branches: [ "main" ]
+
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if release
+        id: release-check
+        shell: bash
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          isrelease="false"
+          if [[ $EVENT_NAME == "push" && $COMMIT_MESSAGE == "release: "* ]]; then
+            isrelease="true"
+          elif [[ $EVENT_NAME == "workflow_dispatch" ]]; then
+            isrelease="true"
+          fi
+          echo "is-release=$isrelease" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout
+        if: steps.release-check.outputs.is-release == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Go
+        if: steps.release-check.outputs.is-release == 'true'
+        uses: actions/setup-go@v5
+
+      - name: Build
+        if: steps.release-check.outputs.is-release == 'true'
+        shell: bash
+        run: |
+          mkdir -p dist
+          go mod download
+          GOOS=linux GOARCH=amd64 go build -v -o dist/passgengo
+          GOOS=windows GOARCH=amd64 go build -v -o dist/passgengo.exe
+
+      - name: Get Release Tag
+        id: get-tag
+        if: steps.release-check.outputs.is-release == 'true'
+        shell: bash
+        run: |
+          TAG="$(date +'%Y%m%d-%H%M%S')"
+          echo "release_tag=$TAG" >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        id: create-release
+        if: steps.release-check.outputs.is-release == 'true'
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: v${{ steps.get-tag.outputs.release_tag }}
+          release_name: "Release v${{ steps.get-tag.outputs.release_tag }}"
+          draft: false
+          prerelease: false
+  
+      - name: Upload Linux Binary
+        if: steps.release-check.outputs.is-release == 'true'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: dist/passgengo
+          asset_name: passgengo-linux
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows Binary
+        if: steps.release-check.outputs.is-release == 'true'
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create-release.outputs.upload_url }}
+          asset_path: dist/passgengo.exe
+          asset_name: passgengo.exe
+          asset_content_type: application/octet-stream

@@ -1,8 +1,10 @@
 name: "Release"
 
 on:
-  pull_request:
+  push:
+    branches: [ "main" ]
 
+  pull_request:
   workflow_dispatch:
 
 jobs:
@@ -14,12 +16,15 @@ jobs:
         shell: bash
         env:
           COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           isrelease="false"
-          if [[ ${{ github.event_name }} = "pull_request" && $COMMIT_MESSAGE = "release: "* ]]; then
-            $isrelease="true"
+          if [[ $EVENT_NAME == "push" && $COMMIT_MESSAGE == "release: "* ]]; then
+            isrelease="true"
+          elif [[ $EVENT_NAME == "workflow_dispatch" ]]; then
+            isrelease="true"
           fi
-          echo "is-release=$isrelease" >> $GITHUB_OUTPUT
+          echo "is-release=$isrelease" >> "$GITHUB_OUTPUT"
 
       - name: Print result
         shell: bash

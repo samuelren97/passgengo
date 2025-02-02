@@ -1,0 +1,27 @@
+name: "Release"
+
+on:
+  pull_request:
+
+  workflow_dispatch:
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if release
+        id: release-check
+        shell: bash
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+        run: |
+          isrelease="false"
+          if [[ ${{ github.event_name }} = "pull_request" && $COMMIT_MESSAGE = "release: "* ]]; then
+            $isrelease="true"
+          fi
+          echo "is-release=$isrelease" >> $GITHUB_OUPUT
+
+      - name: Print result
+        shell: bash
+        run: |
+          echo ${{ steps.release-check.outputs.is-release }}

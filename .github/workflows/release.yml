@@ -19,7 +19,7 @@ jobs:
           if [[ ${{ github.event_name }} = "pull_request" && $COMMIT_MESSAGE = "release: "* ]]; then
             $isrelease="true"
           fi
-          echo "is-release=$isrelease" >> $GITHUB_OUPUT
+          echo "is-release=$isrelease" >> $GITHUB_OUTPUT
 
       - name: Print result
         shell: bash

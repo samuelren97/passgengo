@@ -15,7 +15,7 @@ const (
 
 	lowerCharset   = "abcdefghijklmnopqrstuvwxyz"
 	upperCharset   = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
-	specialCharset = "!@#$%^&*()-_=+"
+	specialCharset = "!@#$%^&*()-_=+[]{}|;:,.<>?/~`"
 )
 
 type Generator interface {
@@ -89,3 +89,4 @@ func (g *generator) getAvailableCharsets() []string {
 
 	return availableCharsets
 }
+

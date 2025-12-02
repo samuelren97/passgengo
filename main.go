@@ -14,6 +14,7 @@ import (
 
 var (
 	length         int
+	hexString      bool
 	hashingMethod  int
 	noUpperChars   bool
 	noSpecialChars bool
@@ -73,6 +74,13 @@ func parseFlags() {
 		"The password length. Must be between 6 and 128 characters",
 	)
 
+	flag.BoolVar(
+		&hexString,
+		"hex",
+		false,
+		"Hexadecimal encoded string. The length represents the number of bytes",
+	)
+
 	// Hashing
 	hashingMethods := hashing.GetHashingMethodsString()
 	flag.IntVar(
@@ -117,7 +125,10 @@ func buildGenerator() (generator gen.Generator, err error) {
 	if err = builder.HashingMethod(hashingMethod); err != nil {
 		return
 	}
-	// TODO: Write clear text password eventhough it went through hashing ....
+
+	if hexString {
+		builder.HexString()
+	}
 
 	if noUpperChars {
 		builder.NoUpperChars()

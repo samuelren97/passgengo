@@ -2,6 +2,7 @@ package generator
 
 import (
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -28,6 +29,7 @@ type Generator interface {
 type generator struct {
 	length         int
 	hexString      bool
+	base64String   bool
 	hashingMethod  hashing.Method
 	noUpperChars   bool
 	noSpecialChars bool
@@ -35,9 +37,15 @@ type generator struct {
 
 func (g *generator) Generate() (string, error) {
 	if g.hexString {
-		password := make([]byte, g.length)
-		rand.Read(password)
-		return hex.EncodeToString(password), nil
+		return hex.EncodeToString(
+			getPasswordBytes(g.length),
+		), nil
+	}
+
+	if g.base64String {
+		return base64.StdEncoding.EncodeToString(
+			getPasswordBytes(g.length),
+		), nil
 	}
 
 	return g.generateStandardPassword()
@@ -102,4 +110,10 @@ func (g *generator) getAvailableCharsets() []string {
 	}
 
 	return availableCharsets
+}
+
+func getPasswordBytes(length int) []byte {
+	password := make([]byte, length)
+	rand.Read(password)
+	return password
 }

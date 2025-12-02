@@ -20,6 +20,24 @@ func GetGeneratorFromWizard() (Generator, error) {
 	}
 	builder.Length(length)
 
+	hexString, err := getYesNoInput("Do you wish to generate a hexadecimal string ?")
+	if err != nil {
+		return nil, err
+	}
+	if hexString {
+		builder.HexString()
+		return builder.Build(), nil
+	}
+
+	base64String, err := getYesNoInput("Do you wish to generate a standard base64 string ?")
+	if err != nil {
+		return nil, err
+	}
+	if base64String {
+		builder.Base64String()
+		return builder.Build(), nil
+	}
+
 	noUpper, err := getYesNoInput("Do you wish to disable upper case characters ?")
 	if err != nil {
 		return nil, err

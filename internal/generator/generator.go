@@ -1,6 +1,8 @@
 package generator
 
 import (
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"passgengo/internal/hashing"
@@ -25,17 +27,37 @@ type Generator interface {
 
 type generator struct {
 	length         int
+	hexString      bool
 	hashingMethod  hashing.Method
 	noUpperChars   bool
 	noSpecialChars bool
 }
 
 func (g *generator) Generate() (string, error) {
+	if g.hexString {
+		password := make([]byte, g.length)
+		rand.Read(password)
+		return hex.EncodeToString(password), nil
+	}
+
+	return g.generateStandardPassword()
+}
+
+func (g *generator) Json() (string, error) {
+	jsonBytes, err := json.MarshalIndent(g.toModel(), "", "  ")
+	if err != nil {
+		return "", err
+	}
+
+	return string(jsonBytes), nil
+}
+
+func (g *generator) generateStandardPassword() (string, error) {
 	var password []byte
 
 	availableCharsets := g.getAvailableCharsets()
 
-	for i := 0; i < g.length; i++ {
+	for range g.length {
 		randCharsetIndex, err := utils.RandomIntWithMax(len(availableCharsets))
 		if err != nil {
 			return "", err
@@ -50,8 +72,8 @@ func (g *generator) Generate() (string, error) {
 
 	utils.LogDebug(string(password))
 
-	switch {
-	case g.hashingMethod == hashing.SHA256:
+	switch g.hashingMethod {
+	case hashing.SHA256:
 		logging.Info(fmt.Sprintf("Using a hashing method, cleartext password: %s", password))
 		return hashing.HashSHA256(password)
 	}
@@ -59,18 +81,10 @@ func (g *generator) Generate() (string, error) {
 	return string(password), nil
 }
 
-func (g *generator) Json() (string, error) {
-	jsonBytes, err := json.MarshalIndent(g.toModel(), "", "  ")
-	if err != nil {
-		return "", err
-	}
-
-	return string(jsonBytes), nil
-}
-
 func (g *generator) toModel() *models.GeneratorModel {
 	return &models.GeneratorModel{
 		Length:         g.length,
+		HexString:      g.hexString,
 		HashingMethod:  g.hashingMethod,
 		NoUpperChars:   g.noUpperChars,
 		NoSpecialChars: g.noSpecialChars,
@@ -89,4 +103,3 @@ func (g *generator) getAvailableCharsets() []string {
 
 	return availableCharsets
 }
-

@@ -11,7 +11,7 @@ func RandomIntWithMax(max int) (*big.Int, error) {
 
 func ShuffleBytes(b *[]byte) error {
 	nBytes := *b
-	for j := 0; j < len(nBytes); j++ {
+	for j := range nBytes {
 		randIndex, err := RandomIntWithMax(len(nBytes))
 		if err != nil {
 			return err

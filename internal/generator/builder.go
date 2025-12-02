@@ -13,6 +13,10 @@ func NewGeneratorBuilder() *GeneratorBuilder {
 	return &GeneratorBuilder{instance: &generator{}}
 }
 
+func (gb *GeneratorBuilder) HexString() {
+	gb.instance.hexString = true
+}
+
 func (gb *GeneratorBuilder) Length(length int) error {
 	if length < MinPassLen || length > MaxPassLen {
 		return fmt.Errorf("incorrect password length")

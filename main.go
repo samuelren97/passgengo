@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"passgengo/internal/colors"
@@ -15,6 +16,7 @@ import (
 var (
 	length         int
 	hexString      bool
+	base64String   bool
 	hashingMethod  int
 	noUpperChars   bool
 	noSpecialChars bool
@@ -81,6 +83,13 @@ func parseFlags() {
 		"Hexadecimal encoded string. The length represents the number of bytes",
 	)
 
+	flag.BoolVar(
+		&base64String,
+		"b64",
+		false,
+		"Standard base64 encoded string. The length represents the number of bytes",
+	)
+
 	// Hashing
 	hashingMethods := hashing.GetHashingMethodsString()
 	flag.IntVar(
@@ -126,8 +135,17 @@ func buildGenerator() (generator gen.Generator, err error) {
 		return
 	}
 
+	if hexString && base64String {
+		err = errors.New("cannot use hex string and base64 string in the same command")
+		return
+	}
+
 	if hexString {
 		builder.HexString()
+	}
+
+	if base64String {
+		builder.Base64String()
 	}
 
 	if noUpperChars {

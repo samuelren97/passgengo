@@ -5,6 +5,13 @@ A overkill CLI tool to generate passwords
 
 ## Basic usage
 
+### UUID Generator
+Returns a UUID
+```
+-uuid bool
+        Generates a simple uuid
+```
+
 ### Hashing Method
 Available hashing methods
 ```

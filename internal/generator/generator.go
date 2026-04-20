@@ -10,6 +10,8 @@ import (
 	"passgengo/internal/logging"
 	"passgengo/internal/models"
 	"passgengo/internal/utils"
+
+	"github.com/google/uuid"
 )
 
 const (
@@ -28,6 +30,7 @@ type Generator interface {
 
 type generator struct {
 	length         int
+	uuid           bool
 	hexString      bool
 	base64String   bool
 	hashingMethod  hashing.Method
@@ -36,6 +39,10 @@ type generator struct {
 }
 
 func (g *generator) Generate() (string, error) {
+	if g.uuid {
+		return uuid.NewString(), nil
+	}
+
 	if g.hexString {
 		return hex.EncodeToString(
 			getPasswordBytes(g.length),
@@ -92,6 +99,7 @@ func (g *generator) generateStandardPassword() (string, error) {
 func (g *generator) toModel() *models.GeneratorModel {
 	return &models.GeneratorModel{
 		Length:         g.length,
+		UUID:           g.uuid,
 		HexString:      g.hexString,
 		HashingMethod:  g.hashingMethod,
 		NoUpperChars:   g.noUpperChars,

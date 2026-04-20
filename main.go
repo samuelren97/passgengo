@@ -15,6 +15,7 @@ import (
 
 var (
 	length         int
+	uuid           bool
 	hexString      bool
 	base64String   bool
 	hashingMethod  int
@@ -77,6 +78,13 @@ func parseFlags() {
 	)
 
 	flag.BoolVar(
+		&uuid,
+		"uuid",
+		false,
+		"Generates a simple uuid",
+	)
+
+	flag.BoolVar(
 		&hexString,
 		"hex",
 		false,
@@ -126,6 +134,12 @@ func parseFlags() {
 
 func buildGenerator() (generator gen.Generator, err error) {
 	builder := gen.NewGeneratorBuilder()
+
+	if uuid {
+		builder.UUID()
+		generator = builder.Build()
+		return
+	}
 
 	if err = builder.Length(length); err != nil {
 		return

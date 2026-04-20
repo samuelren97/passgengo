@@ -13,6 +13,10 @@ func NewGeneratorBuilder() *GeneratorBuilder {
 	return &GeneratorBuilder{instance: &generator{}}
 }
 
+func (gb *GeneratorBuilder) UUID() {
+	gb.instance.uuid = true
+}
+
 func (gb *GeneratorBuilder) HexString() {
 	gb.instance.hexString = true
 }

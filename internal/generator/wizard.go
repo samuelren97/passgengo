@@ -11,6 +11,15 @@ import (
 func GetGeneratorFromWizard() (Generator, error) {
 	builder := NewGeneratorBuilder()
 
+	uuid, err := getYesNoInput("Do you want to generate a UUID ?")
+	if err != nil {
+		return nil, err
+	}
+	if uuid {
+		builder.UUID()
+		return builder.Build(), nil
+	}
+
 	length, err := getUserIntInput(
 		fmt.Sprintf("Please enter the password length (min: %d, max: %d): ", MinPassLen, MaxPassLen),
 		func(i int) bool { return i >= MinPassLen && i <= MaxPassLen },

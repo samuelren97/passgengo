@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"os"
 	"passgengo/internal/colors"
 	gen "passgengo/internal/generator"
 	"passgengo/internal/hashing"
@@ -21,25 +22,28 @@ var (
 	hashingMethod  int
 	noUpperChars   bool
 	noSpecialChars bool
+	isSilentOutput bool
 	wizard         bool
 )
 
 type GeneratorBuildFunc func() (gen.Generator, error)
 
 func main() {
-	colors.CheckOS()
-
-	bannerColor := ""
-	if runtime.GOOS != "windows" {
-		randInt, err := utils.RandomIntWithMax(len(colors.BannerColors))
-		if err != nil {
-			panic(err)
-		}
-		bannerColor = colors.BannerColors[randInt.Int64()]
-	}
-	fmt.Println(bannerColor + lib.Banner + colors.Reset)
-
 	parseFlags()
+
+	if !isSilentOutput {
+		colors.CheckOS()
+
+		bannerColor := ""
+		if runtime.GOOS != "windows" {
+			randInt, err := utils.RandomIntWithMax(len(colors.BannerColors))
+			if err != nil {
+				panic(err)
+			}
+			bannerColor = colors.BannerColors[randInt.Int64()]
+		}
+		fmt.Println(bannerColor + lib.Banner + colors.Reset)
+	}
 
 	var generatorBuildFunc GeneratorBuildFunc
 	if wizard {
@@ -50,23 +54,37 @@ func main() {
 
 	generator, err := generatorBuildFunc()
 	if err != nil {
-		printError(err)
+		if !isSilentOutput {
+			printError(err)
+		} else {
+			os.Exit(0)
+		}
 		return
 	}
 
-	logging.Info("Generating the password based on this generator:")
-	generatorJson, err := generator.Json()
-	if err != nil {
-		logging.Fatal(err)
+	if !isSilentOutput {
+		logging.Info("Generating the password based on this generator:")
+		generatorJson, err := generator.Json()
+		if err != nil {
+			logging.Fatal(err)
+		}
+		fmt.Println(generatorJson)
 	}
-	fmt.Println(generatorJson)
 
 	password, err := generator.Generate()
 	if err != nil {
-		logging.Fatal(err)
+		if !isSilentOutput {
+			logging.Fatal(err)
+		} else {
+			os.Exit(1)
+		}
 	}
 
-	logging.Success(fmt.Sprintf("Generated password: %s", password))
+	if !isSilentOutput {
+		logging.Success(fmt.Sprintf("Generated password: %s", password))
+	} else {
+		fmt.Print(password)
+	}
 }
 
 func parseFlags() {
@@ -75,6 +93,13 @@ func parseFlags() {
 		"l",
 		12,
 		"The password length. Must be between 6 and 128 characters",
+	)
+
+	flag.BoolVar(
+		&isSilentOutput,
+		"s",
+		false,
+		"Removes log outputs",
 	)
 
 	flag.BoolVar(

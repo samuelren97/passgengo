@@ -49,6 +49,13 @@ Disables upper case characters
         Remove upper-case characters
 ```
 
+### Silent Output
+Removes log prints, will only print final password
+```
+-s
+        Removes log outputs
+```
+
 ### Wizard
 If you do not wish to use parameters to generate the password, you may use the `wizard` switch
 ```
